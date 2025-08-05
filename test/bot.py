@@ -2,6 +2,7 @@
 import os
 import logging
 import requests
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 from config import BOT_TOKEN, GROUP_ID
@@ -12,6 +13,15 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+async def auto_delete_message(context, chat_id, message_id, delay=300):
+    """Auto delete message after specified delay (default 5 minutes)"""
+    try:
+        await asyncio.sleep(delay)
+        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        logger.info(f"Auto-deleted message {message_id} in chat {chat_id}")
+    except Exception as e:
+        logger.warning(f"Failed to auto-delete message {message_id}: {e}")
 
 async def check_group_membership(user_id):
     """Check if user is a member of the Telegram group"""
@@ -47,7 +57,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             f"🔒 Доступ к системе бронирования ограничен только для участников группы Sapa Group.\n\n"
             f"📞 Для получения доступа обратитесь к администратору."
         )
-        await update.message.reply_text(access_denied_msg, parse_mode='HTML')
+        denied_message = await update.message.reply_text(access_denied_msg, parse_mode='HTML')
+        
+        # Schedule auto-deletion after 5 minutes
+        asyncio.create_task(auto_delete_message(
+            context, 
+            denied_message.chat_id, 
+            denied_message.message_id, 
+            300  # 5 minutes
+        ))
+        
         logger.warning(f"Access denied for user {user_id} ({first_name}) - not a group member")
         return
     
@@ -73,11 +92,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(
+    sent_message = await update.message.reply_text(
         greeting,
         reply_markup=reply_markup,
         parse_mode='HTML'
     )
+    
+    # Schedule auto-deletion after 5 minutes
+    asyncio.create_task(auto_delete_message(
+        context, 
+        sent_message.chat_id, 
+        sent_message.message_id, 
+        300  # 5 minutes
+    ))
     
     logger.info(f"Access granted for user {user_id} ({first_name}) - group member")
 
@@ -95,7 +122,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "❓ По вопросам обращайтесь к администратору."
     )
     
-    await update.message.reply_text(help_text, parse_mode='HTML')
+    help_message = await update.message.reply_text(help_text, parse_mode='HTML')
+    
+    # Schedule auto-deletion after 5 minutes
+    asyncio.create_task(auto_delete_message(
+        context, 
+        help_message.chat_id, 
+        help_message.message_id, 
+        300  # 5 minutes
+    ))
 
 def main() -> None:
     """Start the bot"""
