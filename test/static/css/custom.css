@@ -1,0 +1,382 @@
+/**
+ * Custom CSS for Meeting Room Booking App
+ * Minimal overrides focusing on mobile-friendly design
+ */
+
+/* Root variables for consistent theming */
+:root {
+    --room-available: var(--bs-success);
+    --room-occupied: var(--bs-danger);
+    --touch-target: 44px; /* Minimum touch target size for mobile */
+}
+
+/* Mobile-first responsive design */
+body {
+    padding-bottom: 2rem; /* Extra space for mobile navigation */
+}
+
+/* Enhanced touch targets for mobile */
+.btn, .form-control, .form-select {
+    min-height: var(--touch-target);
+}
+
+/* Card hover effects for better interactivity */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Status badges with better visibility */
+.badge {
+    font-size: 0.85em;
+    padding: 0.5em 0.75em;
+}
+
+.badge.bg-success {
+    background-color: var(--room-available) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--room-occupied) !important;
+}
+
+/* Form enhancements */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Better spacing for mobile */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .btn {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    /* Stack form elements vertically on mobile */
+    .row.g-2 > .col-md-3,
+    .row.g-2 > .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading and error states */
+.loading-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--bs-secondary);
+}
+
+.error-state {
+    padding: 2rem;
+    text-align: center;
+    color: var(--bs-danger);
+}
+
+/* Enhanced availability display */
+.availability-slot {
+    border-left: 4px solid;
+    padding-left: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.availability-slot.available {
+    border-color: var(--room-available);
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+}
+
+.availability-slot.occupied {
+    border-color: var(--room-occupied);
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+}
+
+/* Improved navigation for mobile */
+.navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.navbar-toggler {
+    border: none;
+    padding: 0.25rem 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* Better spacing for content sections */
+.content-section {
+    margin-bottom: 2rem;
+}
+
+/* Enhanced footer */
+footer {
+    margin-top: auto;
+}
+
+/* Flatpickr theme adjustments for better mobile experience */
+.flatpickr-calendar {
+    font-size: 14px;
+}
+
+.flatpickr-day {
+    height: 39px;
+    line-height: 39px;
+}
+
+/* Custom validation styles */
+.was-validated .form-control:valid {
+    border-color: var(--bs-success);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 1.86-1.86L2.3 1.13 1.36 2.07l.94.94-.94.94z'/%3e%3c/svg%3e");
+}
+
+.was-validated .form-control:invalid {
+    border-color: var(--bs-danger);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 1.4 1.4'/%3e%3c/svg%3e");
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .card {
+        transition: none;
+    }
+
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .card {
+        border-width: 2px;
+    }
+
+    .btn {
+        border-width: 2px;
+    }
+}
+
+/* Focus indicators for keyboard navigation */
+.btn:focus-visible,
+.form-control:focus-visible,
+.nav-link:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+/* Print styles */
+/* Company name styling */
+.company-name {
+    color: white !important;
+    font-weight: 500;
+}
+
+@media print {
+    .navbar,
+    footer,
+    .btn {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Mobile-friendly responsive styles */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem 0.75rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .d-flex.justify-content-between > * {
+        margin-bottom: 0.5rem;
+    }
+
+    .d-flex.justify-content-between > *:last-child {
+        margin-bottom: 0;
+    }
+
+    .badge {
+        align-self: flex-start;
+    }
+
+    h1, h2 {
+        font-size: 1.5rem;
+    }
+
+    h3, h4 {
+        font-size: 1.25rem;
+    }
+
+    h5 {
+        font-size: 1.1rem;
+    }
+
+    /* Better touch targets */
+    .btn, .form-control, .form-select {
+        min-height: 44px;
+    }
+
+    /* Improve table responsiveness */
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    /* Stack form elements on mobile */
+    .row.mb-3 .col-md-6,
+    .row.mb-3 .col-md-3,
+    .row.mb-3 .col-sm-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container, .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .card {
+        border-radius: 0.5rem;
+    }
+
+    /* Make buttons full width on very small screens */
+    .btn:not(.btn-sm):not(.btn-lg) {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .d-grid .btn {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    /* Adjust time inputs for better mobile experience */
+    input[type="time"], input[type="date"] {
+        font-size: 16px;
+        padding: 0.75rem;
+    }
+}
+
+/* Improve accessibility and touch targets */
+.form-control:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: #80bdff;
+}
+
+/* Better loading states */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: text-bottom;
+    border: 0.15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+
+@keyframes spinner-border {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Improved alert styles */
+.alert {
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Better card hover effects */
+.card:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+/* Основные стили для времени и даты */
+input[type="date"], input[type="time"] {
+    padding: 0.6rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    min-height: 44px; /* Минимальная высота для мобильных устройств */
+}
+
+/* Мобильная адаптация для полей времени */
+@media (max-width: 768px) {
+    input[type="date"], input[type="time"] {
+        font-size: 16px; /* Предотвращает зум на iOS */
+        padding: 0.75rem;
+        min-height: 48px;
+    }
+
+    .time-picker-container {
+        position: relative;
+    }
+
+    /* Стили для нативного пикера времени на мобильных */
+    input[type="time"]::-webkit-datetime-edit {
+        padding: 0;
+    }
+
+    input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+        padding: 0;
+    }
+
+    input[type="time"]::-webkit-datetime-edit-hour-field,
+    input[type="time"]::-webkit-datetime-edit-minute-field {
+        padding: 2px;
+        border-radius: 4px;
+    }
+
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background-size: 20px;
+        padding: 5px;
+        cursor: pointer;
+    }
+}
