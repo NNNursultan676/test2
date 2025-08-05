@@ -188,6 +188,22 @@ body {
     transition: all 0.2s ease-in-out;
 }
 
+/* Form plaintext styling for user info display */
+.form-control-plaintext {
+    color: var(--text-muted) !important;
+    background-color: transparent;
+    padding: 0.75rem 0;
+}
+
+.form-control-plaintext strong {
+    color: var(--text-muted) !important;
+    font-weight: 600;
+}
+
+.form-control-plaintext .company-name {
+    color: var(--text-muted) !important;
+}
+
 .form-control:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.15);
