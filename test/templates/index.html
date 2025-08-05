@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_translation('rooms') }} - {{ get_translation('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-door-open me-2"></i>{{ get_translation('rooms') }}</h1>
+            <div class="text-end">
+                <small class="text-muted d-block">
+                    <i class="fas fa-calendar me-1"></i>
+                    {{ today }}
+                </small>
+                {% if user_name %}
+                <small class="text-muted d-block">
+                    <i class="fas fa-user me-1"></i>
+                    {{ user_name }}
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for room in rooms %}
+    <div class="col-12 col-md-6 col-lg-4" data-room-id="{{ room.id }}">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-{{ 'users' if room.capacity > 6 else 'user-friends' }} me-2"></i>
+                        {{ get_room_name(room, lang) }}
+                    </h5>
+                    <span class="badge status-badge bg-{{ 'success' if room.current_status == 'available' else 'danger' }}">
+                        <i class="fas fa-{{ 'check' if room.current_status == 'available' else 'times' }} me-1 status-icon"></i>
+                        <span class="status-text">{{ get_translation(room.current_status) }}</span>
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted d-block">
+                        <i class="fas fa-users me-1"></i>
+                        {{ get_translation('capacity') }}: {{ room.capacity }} {{ get_translation('people') }}
+                    </small>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        {{ room.location }}
+                    </small>
+                </div>
+
+                {% if room.features %}
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">{{ get_translation('features') }}:</small>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for feature in room.features %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-{{ 'tv' if feature == 'TV' else 'wifi' if feature == 'WiFi' else 'microphone' if feature == 'Audio' else 'video' if feature == 'Video Conferencing' else 'chalkboard' }} me-1"></i>
+                            {{ get_translation(feature, feature) }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('book_room', room_id=room.id) }}"
+                       class="btn btn-primary">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        {{ get_translation('book_room') }}
+                    </a>
+                    <a href="{{ url_for('room_schedule', room_id=room.id) }}"
+                       class="btn btn-outline-secondary">
+                        <i class="fas fa-calendar me-2"></i>
+                        {{ get_translation('view_schedule') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not rooms %}
+<div class="text-center py-5">
+    <i class="fas fa-door-closed fa-3x text-muted mb-3"></i>
+    <h3 class="text-muted">{{ get_translation('no_rooms', 'No rooms available') }}</h3>
+    <p class="text-muted">{{ get_translation('check_back', 'Please check back later or contact administrator.') }}</p>
+</div>
+{% endif %}
+
+<!-- Legend -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ get_translation('status_legend') }}
+                </h6>
+                <div class="d-flex gap-3">
+                    <span class="badge bg-success">
+                        <i class="fas fa-check me-1"></i>
+                        {{ get_translation('available', 'Available') }}
+                    </span>
+                    <span class="badge bg-danger">
+                        <i class="fas fa-times me-1"></i>
+                        {{ get_translation('occupied', 'Occupied') }}
+                    </span>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    {{ get_translation('status_note', 'Status shown is for current time. Click "Book Room" to see detailed availability.') }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing room status updates...');
+
+    // Auto-update room statuses every 5 seconds
+    const updateInterval = setInterval(() => {
+        updateRoomStatuses();
+    }, 5000);
+
+    function updateRoomStatuses() {
+        const currentTime = new Date().toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        console.log(`Updating room statuses at ${currentTime}...`);
+
+        fetch('/api/room-status')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Room status data received:', data);
+
+                Object.keys(data).forEach(roomId => {
+                    updateRoomCard(roomId, data[roomId]);
+                });
+            })
+            .catch(error => {
+                console.error('Error updating room statuses:', error);
+            });
+    }
+
+    function updateRoomCard(roomId, status) {
+        const roomCard = document.querySelector(`[data-room-id="${roomId}"]`);
+        if (!roomCard) {
+            console.warn(`Room card not found for room ID: ${roomId}`);
+            return;
+        }
+
+        const statusBadge = roomCard.querySelector('.status-badge');
+        const statusIcon = roomCard.querySelector('.status-icon');
+        
+        if (!statusBadge || !statusIcon) {
+            console.warn(`Status elements not found for room ${roomId}`);
+            return;
+        }tatus-icon');
+        const statusText = roomCard.querySelector('.status-text');
+
+        if (!statusBadge || !statusIcon || !statusText) {
+            console.warn(`Status elements not found for room ${roomId}`);
+            return;
+        }
+
+        const isAvailable = status === 'available';
+        const oldStatus = statusBadge.classList.contains('bg-success') ? 'available' : 'occupied';
+
+        // Only update if status actually changed
+        if ((isAvailable && oldStatus !== 'available') || (!isAvailable && oldStatus !== 'occupied')) {
+            console.log(`Room ${roomId} status changed from ${oldStatus} to ${status}`);
+
+            // Update badge class and color
+            statusBadge.className = `badge status-badge ${isAvailable ? 'bg-success' : 'bg-danger'}`;
+
+            // Update icon
+            statusIcon.className = `fas ${isAvailable ? 'fa-check' : 'fa-times'} me-1 status-icon`;
+
+            // Update text
+            if (isAvailable) {
+                statusText.textContent = '{{ get_translation("available") }}';
+            } else {
+                statusText.textContent = '{{ get_translation("occupied") }}';
+            }
+
+            // Add visual feedback for status change
+            roomCard.style.transition = 'all 0.3s ease';
+            roomCard.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                roomCard.style.transform = 'scale(1)';
+            }, 300);
+        }
+    }
+
+    // Initial update after a short delay
+    setTimeout(() => {
+        updateRoomStatuses();
+    }, 1000);
+
+    // Clean up interval when page unloads
+    window.addEventListener('beforeunload', () => {
+        clearInterval(updateInterval);
+    });
+});
+</script>
+{% endblock %}
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+</style>

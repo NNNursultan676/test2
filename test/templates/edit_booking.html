@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_translation('edit_booking', 'Edit Booking') }} - {{ get_translation('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-edit me-2"></i>
+                {{ get_translation('edit_booking', 'Edit Booking') }}
+            </h2>
+            <a href="{{ url_for('my_bookings') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                {{ get_translation('back', 'Back') }}
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-door-open me-2"></i>
+                    {{ room.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="editBookingForm">
+                    <div class="mb-3">
+                        <label for="date" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ get_translation('date') }} *
+                        </label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="date" 
+                               name="date" 
+                               required 
+                               value="{{ booking.date }}"
+                               min="{{ today }}">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_time" class="form-label">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ get_translation('start_time') }} *
+                            </label>
+                            <input type="time" 
+                                   class="form-control" 
+                                   id="start_time" 
+                                   name="start_time" 
+                                   required 
+                                   value="{{ booking.start_time }}"
+                                   min="09:00" 
+                                   max="17:45" 
+                                   step="900">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="end_time" class="form-label">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ get_translation('end_time') }} *
+                            </label>
+                            <input type="time" 
+                                   class="form-control" 
+                                   id="end_time" 
+                                   name="end_time" 
+                                   required 
+                                   value="{{ booking.end_time }}"
+                                   min="09:15" 
+                                   max="18:01" 
+                                   step="900">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="purpose" class="form-label">
+                            <i class="fas fa-clipboard me-1"></i>
+                            {{ get_translation('purpose') }}
+                        </label>
+                        <textarea class="form-control" 
+                                  id="purpose" 
+                                  name="purpose" 
+                                  rows="3" 
+                                  placeholder="{{ get_translation('purpose_placeholder', 'Meeting purpose (optional)') }}">{{ booking.purpose or '' }}</textarea>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ get_translation('working_hours_info', 'Working hours: 9:00 - 18:00') }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>
+                            {{ get_translation('update_booking', 'Update Booking') }}
+                        </button>
+                        <a href="{{ url_for('my_bookings') }}" class="btn btn-outline-secondary">
+                            {{ get_translation('cancel', 'Cancel') }}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Availability Display -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    {{ get_translation('current_schedule', 'Current Schedule') }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="availabilityDisplay">
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p>{{ get_translation('loading', 'Loading...') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roomId = {{ room.id }};
+    const bookingId = {{ booking.id }};
+    const dateInput = document.getElementById('date');
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
+    const availabilityDisplay = document.getElementById('availabilityDisplay');
+
+    let userSetEndTime = false; // Track if user manually set end time
+
+    // Load availability when date changes
+    dateInput.addEventListener('change', function() {
+        loadRoomAvailability();
+    });
+
+    // Load initial availability
+    loadRoomAvailability();
+
+    function loadRoomAvailability() {
+        const selectedDate = dateInput.value;
+        if (!selectedDate) return;
+
+        fetch(`/api/room-availability/${roomId}?date=${selectedDate}`)
+            .then(response => response.json())
+            .then(data => {
+                displayAvailability(data.occupied_slots, selectedDate);
+            })
+            .catch(error => {
+                console.error('Error loading availability:', error);
+                availabilityDisplay.innerHTML = '<div class="text-danger">{{ get_translation('error_loading_availability') }}</div>';<div class="text-danger">Error loading availability</div>';
+            });
+    }
+
+    function displayAvailability(occupiedSlots, date) {
+        // Filter out current booking from occupied slots
+        const filteredSlots = occupiedSlots.filter(slot => {
+            return !(slot.start === '{{ booking.start_time }}' && 
+                     slot.end === '{{ booking.end_time }}' && 
+                     slot.user === '{{ booking.user_name }}');
+        });
+
+        if (filteredSlots.length === 0) {
+            availabilityDisplay.innerHTML = `
+                <div class="text-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    {{ get_translation('no_bookings_date', 'No other bookings for this date') }}
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="row g-2">';
+        filteredSlots.forEach(slot => {
+            html += `
+                <div class="col-12">
+                    <div class="card border-danger">
+                        <div class="card-body py-2">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                                <div class="flex-grow-1">
+                                    <strong class="text-danger">${slot.start} - ${slot.end}</strong>
+                                    <small class="text-muted d-block">{{ get_translation('booked_by', 'Booked by') }}: ${slot.user}</small>
+                                    ${slot.purpose ? `<small class="text-muted">${slot.purpose}</small>` : ''}
+                                </div>
+                                <span class="badge bg-danger mt-2 mt-sm-0">{{ get_translation('occupied', 'Occupied') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+
+        availabilityDisplay.innerHTML = html;
+    }
+
+    // Auto-set end time when start time changes (add 1 hour, but user can override)
+    startTimeInput.addEventListener('change', function() {
+        if (!userSetEndTime) {
+            updateEndTime();
+        }
+        validateTime();
+    });
+
+    // Track when user manually sets end time
+    endTimeInput.addEventListener('input', function() {
+        userSetEndTime = true;
+        validateTime();
+    });
+
+    // Reset user override when start time changes significantly
+    startTimeInput.addEventListener('input', function() {
+        if (userSetEndTime) {
+            const currentStart = startTimeInput.value;
+            const currentEnd = endTimeInput.value;
+
+            if (currentStart && currentEnd) {
+                const startTime = new Date(`1970-01-01T${currentStart}`);
+                const endTime = new Date(`1970-01-01T${currentEnd}`);
+                const diffHours = (endTime - startTime) / (1000 * 60 * 60);
+
+                // If difference is more than 3 hours, auto-update end time
+                if (diffHours > 3) {
+                    userSetEndTime = false;
+                    updateEndTime();
+                }
+            }
+        }
+        validateTime();
+    });
+
+    // Validate date changes
+    dateInput.addEventListener('change', function() {
+        validateDateTime();
+    });
+
+    // Add form submission validation
+    document.getElementById('editBookingForm').addEventListener('submit', function(e) {
+        // Force validation check before submission
+        validateDateTime();
+
+        const selectedDate = dateInput.value;
+        const startTime = startTimeInput.value;
+
+        if (selectedDate && startTime) {
+            const now = new Date();
+            const bookingDateTime = new Date(`${selectedDate}T${startTime}`);
+            const today = new Date().toISOString().split('T')[0];
+
+            // Check if booking is in the past
+            let isPastTime = false;
+
+            if (bookingDateTime <= now) {
+                isPastTime = true;
+            } else if (selectedDate === today) {
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const [bookingHour, bookingMinute] = startTime.split(':').map(Number);
+
+                if (bookingHour < currentHour || (bookingHour === currentHour && bookingMinute <= currentMinute)) {
+                    isPastTime = true;
+                }
+            }
+
+            if (isPastTime) {
+                e.preventDefault();
+                alert('{{ get_translation('cannot_book_past_time', 'Cannot book in the past') }}');
+                startTimeInput.focus();
+                return false;
+            }
+        }
+
+        // Check if form is valid
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    function updateEndTime() {
+        const startTime = startTimeInput.value;
+        if (!startTime) return;
+
+        try {
+            const [startHours, startMinutes] = startTime.split(':').map(Number);
+            let endHours = startHours + 1;
+            let endMinutes = startMinutes;
+
+            // If start time is 17:45 or later, set end time to 18:00
+            if (startHours >= 17 && startMinutes >= 45) {
+                endHours = 18;
+                endMinutes = 0;
+            }
+            // Ensure end time is within working hours (max 18:00)
+            else if (endHours > 18) {
+                endHours = 18;
+                endMinutes = 0;
+            }
+
+            const formattedEndTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+
+            // Set end time only if it's within working hours
+            if (endHours <= 18) {
+                endTimeInput.value = formattedEndTime;
+            }
+        } catch (error) {
+            console.error('Error updating end time:', error);
+        }
+    }
+
+    function validateTime() {
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
+
+        if (startTime && endTime) {
+            // Check if end time is after start time
+            if (startTime >= endTime) {
+                endTimeInput.setCustomValidity('{{ get_translation('end_time_after_start', 'End time must be after start time') }}');
+            } else {
+                endTimeInput.setCustomValidity('');
+            }
+
+            // Check working hours
+            const startHour = parseInt(startTime.split(':')[0]);
+            const endHour = parseInt(endTime.split(':')[0]);
+
+            if (startHour < 9) {
+                startTimeInput.setCustomValidity('{{ get_translation('working_hours_only', 'Working hours: 9:00 - 18:00') }}');
+            } else if (startHour >= 18) {
+                startTimeInput.setCustomValidity('{{ get_translation('working_hours_only', 'Working hours: 9:00 - 18:00') }}');
+            } else {
+                startTimeInput.setCustomValidity('');
+            }
+
+            if (endHour > 18 || (endHour == 18 && parseInt(endTime.split(':')[1]) > 1)) {
+                endTimeInput.setCustomValidity('{{ get_translation('working_hours_only', 'Working hours: 9:00 - 18:00') }}');
+            } else {
+                endTimeInput.setCustomValidity('');
+            }
+        }
+    }
+
+    function validateDateTime() {
+        const selectedDate = dateInput.value;
+        const startTime = startTimeInput.value;
+
+        if (selectedDate && startTime) {
+            const now = new Date();
+            const bookingDateTime = new Date(`${selectedDate}T${startTime}`);
+            const today = new Date().toISOString().split('T')[0];
+
+            // Check if booking is in the past
+            if (bookingDateTime <= now) {
+                startTimeInput.setCustomValidity('{{ get_translation('cannot_book_past_time', 'Cannot book in the past') }}');
+                dateInput.setCustomValidity('{{ get_translation('cannot_book_past_time', 'Cannot book in the past') }}');
+            } 
+            // Additional check for today's date with current time
+            else if (selectedDate === today) {
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const [bookingHour, bookingMinute] = startTime.split(':').map(Number);
+
+                if (bookingHour < currentHour || (bookingHour === currentHour && bookingMinute <= currentMinute)) {
+                    startTimeInput.setCustomValidity('{{ get_translation('cannot_book_past_time', 'Cannot book in the past') }}');
+                } else {
+                    startTimeInput.setCustomValidity('');
+                    dateInput.setCustomValidity('');
+                }
+            } else {
+                startTimeInput.setCustomValidity('');
+                dateInput.setCustomValidity('');
+            }
+        }
+    }
+    // Auto-fill end time when start time is selected
+    startTimeInput.addEventListener('change', function() {
+        if (!userSetEndTime && this.value) {
+            const [startHours, startMinutes] = this.value.split(':').map(Number);
+            let endHours = startHours + 1;
+            let endMinutes = startMinutes;
+
+            // If start time is 17:45 or later, set end time to 18:00
+            if (startHours >= 17 && startMinutes >= 45) {
+                endHours = 18;
+                endMinutes = 0;
+            }
+            // Check if end time exceeds 18:00, if so set to 18:00
+            else if (endHours > 18) {
+                endHours = 18;
+                endMinutes = 0;
+            }
+
+            const endTimeString = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+            endTimeInput.value = endTimeString;
+        }
+        validateTime();
+        validateDateTime();
+    });
+});
+</script>
+{% endblock %}
