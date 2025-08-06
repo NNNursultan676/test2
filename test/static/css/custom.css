@@ -457,6 +457,60 @@ input[type="date"]:focus, input[type="time"]:focus {
     .btn {
         font-size: 0.95rem;
         padding: 0.75rem 1rem;
+        min-height: 48px;
+        border-radius: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Fix button groups on mobile */
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-group .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        border-radius: 8px !important;
+    }
+
+    .btn-group .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Make action buttons stack properly */
+    .d-grid .btn,
+    .d-flex .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .d-flex .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Fix navbar buttons */
+    .navbar-nav {
+        text-align: center;
+        width: 100%;
+    }
+
+    .navbar-nav .nav-item {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Header buttons responsive layout */
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 1rem;
+    }
+
+    .d-flex.justify-content-between .btn,
+    .d-flex.justify-content-between .btn-group {
+        width: 100%;
     }
 
     h1 { font-size: 1.75rem; }
@@ -485,23 +539,20 @@ input[type="date"]:focus, input[type="time"]:focus {
         box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.15) !important;
     }
 
-    .d-flex.justify-content-between {
-        flex-direction: column;
-        align-items: flex-start !important;
-    }
-
-    .d-flex.justify-content-between > * {
-        margin-bottom: 0.75rem;
-    }
-
-    .d-flex.justify-content-between > *:last-child {
-        margin-bottom: 0;
-    }
-
     .row.mb-3 .col-md-6,
     .row.mb-3 .col-md-3,
     .row.mb-3 .col-sm-6 {
         margin-bottom: 1rem;
+    }
+
+    /* Language selection buttons fix */
+    .d-flex.justify-content-center.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+
+    .d-flex.justify-content-center.gap-2 .btn {
+        width: 100%;
     }
 }
 
@@ -516,9 +567,15 @@ input[type="date"]:focus, input[type="time"]:focus {
         margin-bottom: 1rem;
     }
 
+    /* All buttons take full width on small screens */
     .btn:not(.btn-sm):not(.btn-lg) {
-        width: 100%;
+        width: 100% !important;
         margin-bottom: 0.5rem;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 
     .d-grid .btn {
@@ -526,9 +583,97 @@ input[type="date"]:focus, input[type="time"]:focus {
         margin-bottom: 0;
     }
 
+    /* Fix button groups on very small screens */
+    .btn-group,
+    .btn-group-sm {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .btn-group .btn,
+    .btn-group-sm .btn {
+        width: 100% !important;
+        border-radius: 8px !important;
+        margin-bottom: 0.5rem !important;
+        margin-right: 0 !important;
+    }
+
+    /* Header responsive fixes */
+    .d-flex.justify-content-between.align-items-center {
+        flex-direction: column;
+        align-items: stretch !important;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .d-flex.justify-content-between.align-items-center h2 {
+        margin-bottom: 0;
+        text-align: center;
+    }
+
+    /* Card header fixes */
+    .card-header .d-flex {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    /* Navbar improvements */
+    .navbar-collapse {
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .dropdown-menu {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Form improvements */
+    .row .col-md-3,
+    .row .col-md-6,
+    .row .col-md-4,
+    .row .col-md-8 {
+        margin-bottom: 1rem;
+    }
+
+    /* Time and date inputs */
     input[type="time"], input[type="date"] {
         font-size: 16px;
         padding: 0.75rem;
+        width: 100%;
+    }
+
+    /* Language selection improvements */
+    .d-flex.gap-2,
+    .d-flex.justify-content-center.gap-2 {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        width: 100%;
+    }
+
+    .d-flex.gap-2 .btn,
+    .d-flex.justify-content-center.gap-2 .btn {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+
+    /* List items improvements */
+    .list-group-item .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.5rem;
+    }
+
+    .list-group-item .btn-group {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    /* Badge improvements */
+    .badge {
+        display: inline-block;
+        margin: 0.25rem 0;
     }
 }
 
