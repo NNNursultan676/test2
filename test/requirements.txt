@@ -1,9 +1,0 @@
-
-
-psycopg2-binary
-email-validator
-gunicorn
-translations
-requests==2.31.0
-python-telegram-bot==20.7
-flask==3.0.0
