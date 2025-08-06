@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('schedule-date');
     const refreshButton = document.getElementById('refresh-schedule');
     const bookingsListDiv = document.getElementById('bookings-list');
-    const companies = {{ companies|tojsonfilter }};
+    const companies = {{ companies|tojson }};
 
     // Load bookings when date changes
     dateInput.addEventListener('change', function() {
