@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_translation('manage_notifications', 'Manage Notifications') }} - {{ get_translation('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary">
+                    <i class="fas fa-bell me-2"></i>
+                    {{ get_translation('manage_notifications', 'Manage Notifications') }}
+                </h2>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    {{ get_translation('back', 'Back') }}
+                </a>
+            </div>
+
+            <!-- Create Notification Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>
+                        {{ get_translation('create_notification', 'Create New Notification') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="notificationForm">
+                        <div class="mb-3">
+                            <label for="message" class="form-label">
+                                <i class="fas fa-message me-1"></i>
+                                {{ get_translation('notification_message', 'Notification Message') }}
+                            </label>
+                            <textarea class="form-control" 
+                                      id="message" 
+                                      name="message" 
+                                      rows="3" 
+                                      placeholder="{{ get_translation('enter_notification_message', 'Enter notification message...') }}" 
+                                      required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-week me-1"></i>
+                                    {{ get_translation('send_on_days', 'Send on Days') }}
+                                </label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="monday" id="not_monday" name="days_of_week">
+                                            <label class="form-check-label" for="not_monday">{{ get_translation('monday', 'Monday') }}</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="tuesday" id="not_tuesday" name="days_of_week">
+                                            <label class="form-check-label" for="not_tuesday">{{ get_translation('tuesday', 'Tuesday') }}</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="wednesday" id="not_wednesday" name="days_of_week">
+                                            <label class="form-check-label" for="not_wednesday">{{ get_translation('wednesday', 'Wednesday') }}</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="thursday" id="not_thursday" name="days_of_week">
+                                            <label class="form-check-label" for="not_thursday">{{ get_translation('thursday', 'Thursday') }}</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="friday" id="not_friday" name="days_of_week">
+                                            <label class="form-check-label" for="not_friday">{{ get_translation('friday', 'Friday') }}</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="saturday" id="not_saturday" name="days_of_week">
+                                            <label class="form-check-label" for="not_saturday">{{ get_translation('saturday', 'Saturday') }}</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="sunday" id="not_sunday" name="days_of_week">
+                                            <label class="form-check-label" for="not_sunday">{{ get_translation('sunday', 'Sunday') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="notification_time" class="form-label">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ get_translation('notification_time', 'Notification Time') }}
+                                    </label>
+                                    <input type="time" class="form-control" id="notification_time" name="notification_time" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="thread_id" class="form-label">
+                                        <i class="fas fa-comments me-1"></i>
+                                        {{ get_translation('thread_id', 'Thread ID (optional)') }}
+                                    </label>
+                                    <input type="text" class="form-control" id="thread_id" name="thread_id" placeholder="Telegram thread ID">
+                                    <small class="form-text text-muted">{{ get_translation('thread_id_help', 'Leave empty to send to main chat') }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="repeat_count" class="form-label">
+                                    <i class="fas fa-repeat me-1"></i>
+                                    {{ get_translation('repeat_count', 'Repeat Count') }}
+                                </label>
+                                <input type="number" class="form-control" id="repeat_count" name="repeat_count" min="1" max="100" value="1" required>
+                                <small class="form-text text-muted">{{ get_translation('max_100_repeats', 'Maximum 100 repeats') }}</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="repeat_interval" class="form-label">
+                                    <i class="fas fa-hourglass me-1"></i>
+                                    {{ get_translation('repeat_interval', 'Repeat Interval (hours)') }}
+                                </label>
+                                <input type="number" class="form-control" id="repeat_interval" name="repeat_interval" min="1" max="168" value="1" required>
+                                <small class="form-text text-muted">{{ get_translation('max_168_hours', 'Maximum 168 hours (1 week)') }}</small>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>
+                                {{ get_translation('create_notification', 'Create Notification') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Existing Notifications -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        {{ get_translation('existing_notifications', 'Existing Notifications') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if notifications %}
+                        <div class="list-group list-group-flush">
+                            {% for notification in notifications %}
+                            <div class="list-group-item notification-item-wrapper">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ notification.message[:100] }}{% if notification.message|length > 100 %}...{% endif %}</h6>
+                                        <p class="mb-1 text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ get_translation('days') }}: {{ notification.days_of_week|join(', ') }}
+                                        </p>
+                                        <p class="mb-1 text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ get_translation('time') }}: {{ notification.notification_time }}
+                                        </p>
+                                        <p class="mb-1 text-muted">
+                                            <i class="fas fa-repeat me-1"></i>
+                                            {{ get_translation('repeats') }}: {{ notification.repeat_count }} {{ get_translation('times') }}
+                                        </p>
+                                        <p class="mb-1 text-muted">
+                                            <i class="fas fa-hourglass me-1"></i>
+                                            {{ get_translation('interval') }}: {{ notification.repeat_interval }} {{ get_translation('hours') }}
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i>
+                                            {{ get_translation('created_by') }}: {{ notification.created_by }} ({{ notification.created_at[:10] }})
+                                        </small>
+                                    </div>
+                                    <div class="ms-3">
+                                        <form method="POST" action="{{ url_for('delete_notification', notification_id=notification.id) }}" 
+                                              class="d-inline" onsubmit="return confirm('{{ get_translation('confirm_delete') }}')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                            <p>{{ get_translation('no_notifications', 'No notifications created yet') }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('notificationForm').addEventListener('submit', function(e) {
+        const daysChecked = document.querySelectorAll('input[name="days_of_week"]:checked');
+
+        if (daysChecked.length === 0) {
+            e.preventDefault();
+            alert('{{ get_translation("select_at_least_one_day", "Please select at least one day") }}');
+            return false;
+        }
+
+        const message = document.getElementById('message').value.trim();
+        if (message.length < 10) {
+            e.preventDefault();
+            alert('{{ get_translation("message_too_short", "Message must be at least 10 characters long") }}');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
