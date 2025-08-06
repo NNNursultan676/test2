@@ -1,0 +1,20 @@
+
+[
+  {
+    "id": 1,
+    "name": "Комната",
+    "name_translations": {
+      "en": "Room",
+      "ru": "Комната",
+      "kk": "Бөлме"
+    },
+    "capacity": 8,
+    "location": "6 этаж",
+    "location_translations": {
+      "en": "6th floor",
+      "ru": "6 этаж",
+      "kk": "6-қабат"
+    },
+    "features": ["TV", "WiFi", "Whiteboard", "Video Conferencing"]
+  }
+]
