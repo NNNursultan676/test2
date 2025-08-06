@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Повторяющиеся уведомления - {{ get_translation('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary">
+                    <i class="fas fa-repeat me-2"></i>
+                    Повторяющиеся уведомления
+                </h2>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    {{ get_translation('back', 'Back') }}
+                </a>
+            </div>
+
+            <!-- Create Recurring Notification Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>
+                        Создать повторяющееся уведомление
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="recurringNotificationForm">
+                        <div class="mb-3">
+                            <label for="message" class="form-label">
+                                <i class="fas fa-message me-1"></i>
+                                Сообщение уведомления
+                            </label>
+                            <textarea class="form-control"
+                                      id="message"
+                                      name="message"
+                                      rows="3"
+                                      placeholder="Введите сообщение уведомления..."
+                                      required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-week me-1"></i>
+                                    Отправлять в дни
+                                </label>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="monday" id="rec_monday" name="days_of_week">
+                                            <label class="form-check-label" for="rec_monday">Понедельник</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="tuesday" id="rec_tuesday" name="days_of_week">
+                                            <label class="form-check-label" for="rec_tuesday">Вторник</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="wednesday" id="rec_wednesday" name="days_of_week">
+                                            <label class="form-check-label" for="rec_wednesday">Среда</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="thursday" id="rec_thursday" name="days_of_week">
+                                            <label class="form-check-label" for="rec_thursday">Четверг</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="friday" id="rec_friday" name="days_of_week">
+                                            <label class="form-check-label" for="rec_friday">Пятница</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="saturday" id="rec_saturday" name="days_of_week">
+                                            <label class="form-check-label" for="rec_saturday">Суббота</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="sunday" id="rec_sunday" name="days_of_week">
+                                            <label class="form-check-label" for="rec_sunday">Воскресенье</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="notification_time" class="form-label">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Время уведомления
+                                    </label>
+                                    <input type="time" class="form-control" id="notification_time" name="notification_time" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="weeks_count" class="form-label">
+                                    <i class="fas fa-calendar-week me-1"></i>
+                                    Количество недель
+                                </label>
+                                <input type="number" class="form-control" id="weeks_count" name="weeks_count" min="1" max="52" value="1" required>
+                                <small class="form-text text-muted">Сколько недель повторять</small>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="repeat_count" class="form-label">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    Повторений в неделю
+                                </label>
+                                <input type="number" class="form-control" id="repeat_count" name="repeat_count" min="1" max="100" value="1" required>
+                                <small class="form-text text-muted">За каждую неделю</small>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="repeat_interval" class="form-label">
+                                    <i class="fas fa-hourglass me-1"></i>
+                                    Интервал
+                                </label>
+                                <input type="number" class="form-control" id="repeat_interval" name="repeat_interval" min="1" value="24" required>
+                                <small class="form-text text-muted">Между повторениями</small>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="interval_unit" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Единица времени
+                                </label>
+                                <select class="form-control" id="interval_unit" name="interval_unit" required>
+                                    <option value="seconds">Секунды</option>
+                                    <option value="minutes">Минуты</option>
+                                    <option value="hours" selected>Часы</option>
+                                    <option value="days">Дни</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>
+                                Создать повторяющееся уведомление
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Existing Recurring Notifications -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Существующие повторяющиеся уведомления
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recurring_notifications %}
+                        {% for notification in recurring_notifications %}
+                        <div class="card mb-3 {% if not notification.get('is_active', True) %}bg-secondary{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title">
+                                            {% if notification.get('is_active', True) %}
+                                                <span class="badge bg-success me-2">Активно</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary me-2">Завершено</span>
+                                            {% endif %}
+                                            {{ notification.message[:50] }}{% if notification.message|length > 50 %}...{% endif %}
+                                        </h6>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                Дни: {{ notification.days_of_week|join(', ') }}<br>
+                                                <i class="fas fa-clock me-1"></i>
+                                                Время: {{ notification.notification_time }}<br>
+                                                <i class="fas fa-repeat me-1"></i>
+                                                Недель: {{ notification.get('weeks_count', 1) }} |
+                                                Повторений: {{ notification.get('sent_count', 0) }}/{{ notification.repeat_count }}
+                                            </small>
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i>
+                                            Создал: {{ notification.created_by }} ({{ notification.created_at[:10] }})
+                                        </small>
+                                    </div>
+                                    <div class="ms-3">
+                                        <form method="POST" action="{{ url_for('delete_recurring_notification', notification_id=notification.id) }}"
+                                              onsubmit="return confirm('Удалить это повторяющееся уведомление?')" style="display: inline;">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                            <p>Повторяющихся уведомлений пока нет</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('recurringNotificationForm').addEventListener('submit', function(e) {
+        const daysChecked = document.querySelectorAll('input[name="days_of_week"]:checked');
+
+        if (daysChecked.length === 0) {
+            e.preventDefault();
+            alert('Выберите хотя бы один день для отправки уведомлений');
+            return false;
+        }
+
+        const message = document.getElementById('message').value.trim();
+        if (message.length < 10) {
+            e.preventDefault();
+            alert('Сообщение должно содержать минимум 10 символов');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

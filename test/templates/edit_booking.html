@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_translation('edit_booking', 'Edit Booking') }} - {{ get_translation('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary">
+                    <i class="fas fa-edit me-2"></i>
+                    {{ get_translation('edit_booking', 'Edit Booking') }}
+                </h2>
+                <a href="{{ url_for('my_bookings') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    {{ get_translation('back', 'Back') }}
+                </a>
+            </div>
+
+            <!-- Room Info Card -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-1">{{ get_room_name(room) }}</h5>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ get_room_location(room) }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="badge bg-info fs-6">
+                                <i class="fas fa-users me-1"></i>
+                                {{ room.capacity }} {{ get_translation('people', 'people') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Booking Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-edit me-2"></i>
+                        {{ get_translation('booking_details', 'Booking Details') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="editBookingForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ get_translation('date', 'Date') }}
+                                </label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="date" 
+                                       name="date" 
+                                       value="{{ booking.date }}" 
+                                       required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="start_time" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ get_translation('start_time', 'Start Time') }}
+                                </label>
+                                <input type="time" 
+                                       class="form-control" 
+                                       id="start_time" 
+                                       name="start_time" 
+                                       value="{{ booking.start_time }}" 
+                                       required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="end_time" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ get_translation('end_time', 'End Time') }}
+                                </label>
+                                <input type="time" 
+                                       class="form-control" 
+                                       id="end_time" 
+                                       name="end_time" 
+                                       value="{{ booking.end_time }}" 
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="purpose" class="form-label">
+                                <i class="fas fa-bullseye me-1"></i>
+                                {{ get_translation('purpose', 'Purpose') }}
+                            </label>
+                            <textarea class="form-control" 
+                                      id="purpose" 
+                                      name="purpose" 
+                                      rows="3" 
+                                      placeholder="{{ get_translation('enter_purpose', 'Enter purpose of the meeting...') }}">{{ booking.purpose }}</textarea>
+                        </div>
+
+                        {% if admin_level > 0 %}
+                        <div class="mb-3">
+                            <label for="admin_reason" class="form-label">
+                                <i class="fas fa-comment me-1"></i>
+                                Причина изменения (обязательно)
+                            </label>
+                            <textarea class="form-control" 
+                                      id="admin_reason" 
+                                      name="admin_reason" 
+                                      rows="2" 
+                                      placeholder="Укажите причину изменения бронирования..."
+                                      required>{{ booking.get('admin_reason', '') }}</textarea>
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ get_translation('admin_comment_help', 'This comment will be visible to all users viewing the schedule') }}
+                            </div>
+                        </div>
+
+                        {% if booking.telegram_id != telegram_id %}
+                        <div class="mb-3">
+                            <label for="edit_reason" class="form-label">
+                                <i class="fas fa-exclamation-circle me-1 text-warning"></i>
+                                {{ get_translation('edit_reason', 'Reason for Edit') }}
+                            </label>
+                            <textarea class="form-control" 
+                                      id="edit_reason" 
+                                      name="edit_reason" 
+                                      rows="2" 
+                                      placeholder="{{ get_translation('edit_reason_placeholder', 'Explain why you are editing this booking (will be sent to user)') }}"></textarea>
+                            <div class="form-text text-warning">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ get_translation('edit_reason_help', 'User will be notified about this change via Telegram') }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <!-- Availability Display -->
+                        <div class="mb-3">
+                            <h6 class="text-primary">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ get_translation('room_availability', 'Room Availability') }}
+                            </h6>
+                            <div id="availabilityDisplay" class="border rounded p-3 bg-light">
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                                    <p>{{ get_translation('loading', 'Loading...') }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('my_bookings') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                {{ get_translation('cancel', 'Cancel') }}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {{ get_translation('save_changes', 'Save Changes') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roomId = {{ room.id }};
+    const bookingId = {{ booking.id }};
+    const dateInput = document.getElementById('date');
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
+    const availabilityDisplay = document.getElementById('availabilityDisplay');
+
+    let userSetEndTime = false; // Track if user manually set end time
+
+    // Load availability when date changes
+    dateInput.addEventListener('change', function() {
+        loadRoomAvailability();
+    });
+
+    // Load initial availability
+    loadRoomAvailability();
+
+    function loadRoomAvailability() {
+        const selectedDate = dateInput.value;
+        if (!selectedDate) return;
+
+        fetch(`/api/room-availability/${roomId}?date=${selectedDate}`)
+            .then(response => response.json())
+            .then(data => {
+                displayAvailability(data.occupied_slots, selectedDate);
+            })
+            .catch(error => {
+                console.error('Error loading availability:', error);
+                availabilityDisplay.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ get_translation('error_loading', 'Error loading data') }}
+                    </div>
+                `;
+            });
+    }
+
+    function displayAvailability(occupiedSlots, selectedDate) {
+        if (occupiedSlots.length === 0) {
+            availabilityDisplay.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    {{ get_translation('room_available_all_day', 'Room is available all day') }}
+                </div>
+            `;
+            return;
+        }
+
+        let html = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                {{ get_translation('occupied_times', 'Occupied times:') }}
+            </div>
+            <div class="row">
+        `;
+
+        occupiedSlots
+            .filter(slot => slot.start !== '{{ booking.start_time }}' || slot.end !== '{{ booking.end_time }}')
+            .forEach(slot => {
+                html += `
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex align-items-center p-2 bg-light rounded">
+                            <span class="badge bg-danger me-2">${slot.start}–${slot.end}</span>
+                            <small class="text-muted">${slot.user}</small>
+                        </div>
+                    </div>
+                `;
+            });
+
+        html += '</div>';
+        availabilityDisplay.innerHTML = html;
+    }
+
+    // Form validation
+    document.getElementById('editBookingForm').addEventListener('submit', function(e) {
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
+
+        if (startTime >= endTime) {
+            e.preventDefault();
+            alert('{{ get_translation("invalid_time_range", "End time must be after start time") }}');
+            return false;
+        }
+
+        // Validate working hours (9:00-18:00)
+        const startHour = parseInt(startTime.split(':')[0]);
+        const endHour = parseInt(endTime.split(':')[0]);
+        const endMinute = parseInt(endTime.split(':')[1]);
+
+        if (startHour < 9 || startHour >= 18) {
+            e.preventDefault();
+            alert('{{ get_translation("outside_working_hours", "Booking must be within working hours (9:00-18:00)") }}');
+            return false;
+        }
+
+        if (endHour > 18 || (endHour === 18 && endMinute > 0)) {
+            e.preventDefault();
+            alert('{{ get_translation("outside_working_hours", "Booking must be within working hours (9:00-18:00)") }}');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
