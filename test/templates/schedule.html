@@ -13,8 +13,8 @@
                     <i class="fas fa-calendar-alt me-2"></i>
                     {{ get_room_name(room) }} - {{ get_translation('schedule', 'Schedule') }}
                 </h2>
-                <div>
-                    <a href="{{ url_for('book_room', room_id=room.id) }}" class="btn btn-success me-2">
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <a href="{{ url_for('book_room', room_id=room.id) }}" class="btn btn-success">
                         <i class="fas fa-plus me-2"></i>
                         {{ get_translation('book_room', 'Book Room') }}
                     </a>
@@ -49,8 +49,8 @@
             <!-- Date Selection -->
             <div class="card mb-4 bg-white">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
+                    <div class="row align-items-end">
+                        <div class="col-12 col-md-8 mb-3 mb-md-0">
                             <label for="schedule-date" class="form-label text-dark">
                                 <i class="fas fa-calendar me-1"></i>
                                 {{ get_translation('select_date', 'Select Date') }}
@@ -61,8 +61,8 @@
                                    value="{{ selected_date }}"
                                    min="{{ selected_date }}">
                         </div>
-                        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                            <button id="refresh-schedule" class="btn btn-outline-primary">
+                        <div class="col-12 col-md-4">
+                            <button id="refresh-schedule" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-sync-alt me-2"></i>
                                 {{ get_translation('refresh', 'Refresh') }}
                             </button>
