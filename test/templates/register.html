@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_translation('welcome') }} - {{ get_translation('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='images/sapa-logo-final.png') }}" alt="Sapa Group" height="64" class="mb-3">
+            <h2>{{ get_translation('welcome') }}</h2>
+            <p class="text-muted">{{ get_translation('please_provide_info') }}</p>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" id="registerForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">
+                            <i class="fas fa-user me-1"></i>
+                            {{ get_translation('your_name') }} *
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name" 
+                               name="name" 
+                               required 
+                               placeholder="{{ get_translation('your_name') }}"
+                               value="{{ request.form.get('name', '') }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="company" class="form-label">
+                            <i class="fas fa-building me-1"></i>
+                            {{ get_translation('company') }} *
+                        </label>
+                        <select class="form-select" id="company" name="company" required>
+                            <option value="">{{ get_translation('company_required') }}</option>
+                            {% for company in companies %}
+                            <option value="{{ company.id }}" 
+                                    data-logo="{{ company.logo }}"
+                                    {% if request.form.get('company') == company.id %}selected{% endif %}>
+                                {{ company.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i>
+                            {{ get_translation('submit') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <hr class="my-4">
+            <h6 class="text-muted mb-3">
+                <i class="fas fa-globe me-1"></i>
+                {{ get_translation('choose_language', 'Choose Language') }}
+            </h6>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{{ url_for('set_language', lang='en') }}" 
+                   class="btn btn-sm btn-{{ 'primary' if lang == 'en' else 'outline-primary' }}">
+                    English
+                </a>
+                <a href="{{ url_for('set_language', lang='ru') }}" 
+                   class="btn btn-sm btn-{{ 'primary' if lang == 'ru' else 'outline-primary' }}">
+                    Русский
+                </a>
+                <a href="{{ url_for('set_language', lang='kk') }}" 
+                   class="btn btn-sm btn-{{ 'primary' if lang == 'kk' else 'outline-primary' }}">
+                    Қазақша
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                {{ get_translation('registration_info', 'This information will be used for room bookings') }}
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const companySelect = document.getElementById('company');
+    
+    // Show company logo
+    companySelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const logo = selectedOption.getAttribute('data-logo');
+        
+        // Could show company logo here if needed
+        console.log('Selected company logo:', logo);
+    });
+});
+</script>
+{% endblock %}
