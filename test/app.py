@@ -101,15 +101,15 @@ def clear_all_system_data():
         # Clear bookings
         if save_bookings([]):
             logging.info("All bookings cleared")
-        
+
         # Clear notifications
         if save_notifications([]):
             logging.info("All notifications cleared")
-        
+
         # Clear recurring notifications
         if save_recurring_notifications([]):
             logging.info("All recurring notifications cleared")
-        
+
         return True
     except Exception as e:
         logging.error(f"Error clearing system data: {e}")
@@ -172,23 +172,23 @@ def create_recurring_bookings(base_booking, days_of_week, weeks_count):
     """Create recurring bookings for specified days and weeks"""
     bookings = load_bookings()
     new_bookings = []
-    
+
     base_date = datetime.strptime(base_booking['date'], '%Y-%m-%d').date()
-    
+
     for week in range(weeks_count):
         for day_offset in days_of_week:
             # Calculate the date for this occurrence
             current_date = base_date + timedelta(days=day_offset + (week * 7))
             date_str = current_date.strftime('%Y-%m-%d')
-            
+
             # Skip if date is in the past
             if current_date < datetime.now().date():
                 continue
-            
+
             # Check if room is available for this time slot
             if is_room_available(base_booking['room_id'], date_str, 
                                base_booking['start_time'], base_booking['end_time']):
-                
+
                 recurring_booking = base_booking.copy()
                 recurring_booking.update({
                     'id': len(bookings) + len(new_bookings) + 1,
@@ -198,7 +198,7 @@ def create_recurring_bookings(base_booking, days_of_week, weeks_count):
                     'created_at': datetime.now().isoformat()
                 })
                 new_bookings.append(recurring_booking)
-    
+
     return new_bookings
 
 def load_users():
@@ -733,7 +733,7 @@ def delete_booking(booking_id):
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
     reason = request.form.get('admin_reason', '').strip()
-    
+
     # If admin is deleting someone else's booking, reason is required
     bookings = load_bookings()
     booking_to_delete = None
@@ -758,14 +758,14 @@ def delete_booking(booking_id):
 
     if booking_to_delete is not None:
         deleted_booking = bookings.pop(booking_to_delete)
-        
+
         if save_bookings(bookings):
             # Send notification to user if admin deleted their booking
             if admin_level > 0 and str(deleted_booking.get('telegram_id')) != str(telegram_id):
                 users = load_users()
                 admin_data = users.get(str(telegram_id))
                 admin_name = admin_data.get('name', 'Администратор') if admin_data else 'Администратор'
-                
+
                 notification_message = (
                     f"🗑 <b>Ваше бронирование было удалено</b>\n\n"
                     f"📅 Дата: {deleted_booking['date']}\n"
@@ -775,9 +775,9 @@ def delete_booking(booking_id):
                     f"📝 Причина: {reason}\n\n"
                     f"По вопросам обращайтесь к администратору."
                 )
-                
+
                 send_telegram_notification(deleted_booking.get('telegram_id'), notification_message)
-            
+
             flash(get_translation(get_user_lang(), 'booking_deleted', 'Booking deleted successfully'), 'success')
         else:
             flash(get_translation(get_user_lang(), 'delete_error', 'Error deleting booking'), 'error')
@@ -858,7 +858,7 @@ def update_booking(booking_id):
     end_time = request.form.get('end_time')
     purpose = request.form.get('purpose', '')
     admin_reason = request.form.get('admin_reason', '') if admin_level > 0 else original_booking.get('admin_reason', '')
-    
+
     # If admin is editing someone else's booking, reason is required
     if admin_level > 0 and str(original_booking.get('telegram_id')) != str(telegram_id):
         if not admin_reason.strip():
@@ -917,19 +917,21 @@ def update_booking(booking_id):
             admin_data = users.get(str(telegram_id))
             admin_name = admin_data.get('name', 'Администратор') if admin_data else 'Администратор'
             edit_reason = admin_reason if admin_reason else 'Причина не указана'
-            
+
             notification_message = (
                 f"✏️ <b>Ваше бронирование было изменено</b>\n\n"
+                f"🏢 Комната: {original_booking['room_name']}\n\n"
+                f"📅 Старая дата: {original_booking['date']}\n"
+                f"🕐 Старое время: {original_booking['start_time']} - {original_booking['end_time']}\n\n"
                 f"📅 Новая дата: {date}\n"
-                f"🕐 Новое время: {start_time} - {end_time}\n"
-                f"🏢 Комната: {original_booking['room_name']}\n"
+                f"🕐 Новое время: {start_time} - {end_time}\n\n"
                 f"👤 Изменил: {admin_name}\n"
                 f"📝 Причина: {edit_reason}\n\n"
                 f"По вопросам обращайтесь к администратору."
             )
-            
+
             send_telegram_notification(original_booking.get('telegram_id'), notification_message)
-        
+
         flash(get_translation(lang, 'booking_updated', 'Booking updated successfully'), 'success')
         # Redirect based on context
         if request.referrer and 'schedule' in request.referrer:
@@ -957,18 +959,18 @@ def recurring_booking(room_id):
     """Recurring booking page for admins"""
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
-    
+
     if admin_level == 0:
         flash(get_translation(get_user_lang(), 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     rooms = load_rooms()
     room = next((r for r in rooms if r['id'] == room_id), None)
-    
+
     if not room:
         flash(get_translation(get_user_lang(), 'room_not_found', 'Room not found'), 'error')
         return redirect(url_for('index'))
-    
+
     today = datetime.now().strftime('%Y-%m-%d')
     return render_template('recurring_booking.html', room=room, today=today)
 
@@ -979,11 +981,11 @@ def process_recurring_booking(room_id):
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
     lang = get_user_lang()
-    
+
     if admin_level == 0:
         flash(get_translation(lang, 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     # Get form data
     start_date = request.form.get('start_date')
     start_time = request.form.get('start_time')
@@ -991,16 +993,16 @@ def process_recurring_booking(room_id):
     purpose = request.form.get('purpose', '')
     days_of_week = request.form.getlist('days_of_week')
     weeks_count = int(request.form.get('weeks_count', 1))
-    
+
     # Validate form data
     if not all([start_date, start_time, end_time, days_of_week]):
         flash(get_translation(lang, 'fill_required_fields'), 'error')
         return redirect(url_for('recurring_booking', room_id=room_id))
-    
+
     # Get user data
     users = load_users()
     user_data = users.get(str(telegram_id))
-    
+
     # Create base booking
     base_booking = {
         'room_id': room_id,
@@ -1016,21 +1018,21 @@ def process_recurring_booking(room_id):
         'is_recurring': True,
         'created_by_admin': admin_level
     }
-    
+
     # Convert day names to day offsets
     day_mapping = {
         'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3,
         'friday': 4, 'saturday': 5, 'sunday': 6
     }
     day_offsets = [day_mapping[day] for day in days_of_week if day in day_mapping]
-    
+
     # Create recurring bookings
     new_bookings = create_recurring_bookings(base_booking, day_offsets, weeks_count)
-    
+
     if new_bookings:
         bookings = load_bookings()
         bookings.extend(new_bookings)
-        
+
         if save_bookings(bookings):
             flash(f'{len(new_bookings)} повторяющихся бронирований создано успешно', 'success')
             return redirect(url_for('index'))
@@ -1038,7 +1040,7 @@ def process_recurring_booking(room_id):
             flash(get_translation(lang, 'booking_error'), 'error')
     else:
         flash('Не удалось создать повторяющиеся бронирования. Проверьте доступность комнат.', 'warning')
-    
+
     return redirect(url_for('recurring_booking', room_id=room_id))
 
 @app.route('/admin/notifications')
@@ -1047,11 +1049,11 @@ def manage_notifications():
     """Manage notifications page for admins"""
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
-    
+
     if admin_level == 0:
         flash(get_translation(get_user_lang(), 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     notifications = load_notifications()
     return render_template('manage_notifications.html', notifications=notifications)
 
@@ -1062,11 +1064,11 @@ def create_notification():
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
     lang = get_user_lang()
-    
+
     if admin_level == 0:
         flash(get_translation(lang, 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     # Get form data
     message = request.form.get('message', '').strip()
     days_of_week = request.form.getlist('days_of_week')
@@ -1075,14 +1077,14 @@ def create_notification():
     repeat_count = int(request.form.get('repeat_count', 1))
     repeat_interval = int(request.form.get('repeat_interval', 1))  # hours
     thread_id = request.form.get('thread_id', '')
-    
+
     if not all([message, days_of_week, notification_time]):
         flash('Заполните все обязательные поля', 'error')
         return redirect(url_for('manage_notifications'))
-    
+
     users = load_users()
     user_data = users.get(str(telegram_id))
-    
+
     # Create notification
     notifications = load_notifications()
     new_notification = {
@@ -1099,14 +1101,14 @@ def create_notification():
         'created_at': datetime.now().isoformat(),
         'is_active': True
     }
-    
+
     notifications.append(new_notification)
-    
+
     if save_notifications(notifications):
         flash('Уведомление создано успешно', 'success')
     else:
         flash('Ошибка при создании уведомления', 'error')
-    
+
     return redirect(url_for('manage_notifications'))
 
 @app.route('/admin/notifications/update', methods=['POST'])
@@ -1115,21 +1117,21 @@ def update_notification():
     """Update a notification"""
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
-    
+
     if admin_level == 0:
         flash(get_translation(get_user_lang(), 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     notification_id = int(request.form.get('notification_id'))
     message = request.form.get('message', '').strip()
     days_of_week = request.form.getlist('days_of_week')
     notification_time = request.form.get('notification_time')
     repeat_count = int(request.form.get('repeat_count', 1))
-    
+
     if not all([message, days_of_week, notification_time]):
         flash('Заполните все обязательные поля', 'error')
         return redirect(url_for('manage_notifications'))
-    
+
     notifications = load_notifications()
     for notification in notifications:
         if notification['id'] == notification_id:
@@ -1141,12 +1143,12 @@ def update_notification():
                 'updated_at': datetime.now().isoformat()
             })
             break
-    
+
     if save_notifications(notifications):
         flash('Уведомление обновлено успешно', 'success')
     else:
         flash('Ошибка при обновлении уведомления', 'error')
-    
+
     return redirect(url_for('manage_notifications'))
 
 @app.route('/admin/notifications/<int:notification_id>/delete', methods=['POST'])
@@ -1155,19 +1157,19 @@ def delete_notification(notification_id):
     """Delete a notification"""
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
-    
+
     if admin_level == 0:
         flash(get_translation(get_user_lang(), 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     notifications = load_notifications()
     notifications = [n for n in notifications if n['id'] != notification_id]
-    
+
     if save_notifications(notifications):
         flash('Уведомление удалено', 'success')
     else:
         flash('Ошибка при удалении уведомления', 'error')
-    
+
     return redirect(url_for('manage_notifications'))
 
 @app.route('/admin/recurring-notifications')
@@ -1176,11 +1178,11 @@ def manage_recurring_notifications():
     """Manage recurring notifications page for all admins"""
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
-    
+
     if admin_level == 0:
         flash(get_translation(get_user_lang(), 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     recurring_notifications = load_recurring_notifications()
     return render_template('recurring_notifications.html', recurring_notifications=recurring_notifications)
 
@@ -1191,11 +1193,11 @@ def create_recurring_notification():
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
     lang = get_user_lang()
-    
+
     if admin_level == 0:
         flash(get_translation(lang, 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     # Get form data
     message = request.form.get('message', '').strip()
     days_of_week = request.form.getlist('days_of_week')
@@ -1204,7 +1206,7 @@ def create_recurring_notification():
     repeat_count = int(request.form.get('repeat_count', 1))
     repeat_interval = int(request.form.get('repeat_interval', 24))
     interval_unit = request.form.get('interval_unit', 'hours')
-    
+
     # Convert interval to seconds
     unit_multipliers = {
         'seconds': 1,
@@ -1213,14 +1215,14 @@ def create_recurring_notification():
         'days': 86400
     }
     repeat_interval_seconds = repeat_interval * unit_multipliers.get(interval_unit, 3600)
-    
+
     if not all([message, days_of_week, notification_time]):
         flash('Заполните все обязательные поля', 'error')
         return redirect(url_for('manage_recurring_notifications'))
-    
+
     users = load_users()
     user_data = users.get(str(telegram_id))
-    
+
     # Create recurring notification
     recurring_notifications = load_recurring_notifications()
     new_recurring_notification = {
@@ -1237,14 +1239,14 @@ def create_recurring_notification():
         'is_active': True,
         'sent_count': 0
     }
-    
+
     recurring_notifications.append(new_recurring_notification)
-    
+
     if save_recurring_notifications(recurring_notifications):
         flash('Повторяющееся уведомление создано успешно', 'success')
     else:
         flash('Ошибка при создании повторяющегося уведомления', 'error')
-    
+
     return redirect(url_for('manage_recurring_notifications'))
 
 @app.route('/admin/recurring-notifications/<int:notification_id>/delete', methods=['POST'])
@@ -1253,19 +1255,19 @@ def delete_recurring_notification(notification_id):
     """Delete a recurring notification"""
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
-    
+
     if admin_level == 0:
         flash(get_translation(get_user_lang(), 'admin_only', 'Admin access required'), 'error')
         return redirect(url_for('index'))
-    
+
     recurring_notifications = load_recurring_notifications()
     recurring_notifications = [n for n in recurring_notifications if n['id'] != notification_id]
-    
+
     if save_recurring_notifications(recurring_notifications):
         flash('Повторяющееся уведомление удалено', 'success')
     else:
         flash('Ошибка при удалении повторяющегося уведомления', 'error')
-    
+
     return redirect(url_for('manage_recurring_notifications'))
 
 @app.route('/admin/clear-system', methods=['POST'])
@@ -1274,16 +1276,16 @@ def clear_system():
     """Clear all system data (only for level 3 admins)"""
     telegram_id = session.get('telegram_id')
     admin_level = is_admin(telegram_id)
-    
+
     if admin_level < 3:
         flash('Недостаточно прав для очистки системы', 'error')
         return redirect(url_for('index'))
-    
+
     if clear_all_system_data():
         flash('Система успешно очищена', 'success')
     else:
         flash('Ошибка при очистке системы', 'error')
-    
+
     return redirect(url_for('index'))
 
 @app.route('/logout')
