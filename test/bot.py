@@ -306,10 +306,13 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if admin_level >= 2:
             keyboard.extend([
                 [InlineKeyboardButton("👨‍💼 Добавить админа", callback_data="add_admin")],
-                [InlineKeyboardButton("📋 Список админов", callback_data="list_admins")]
+                [InlineKeyboardButton("📋 Список админов", callback_data="list_admins")],
+                [InlineKeyboardButton("🔔 Удалить все повторяющиеся уведомления", callback_data="clear_recurring_notifications")]
             ])
-            # Add clear recurring notifications button if user has admin_level >= 2
-            keyboard.append([InlineKeyboardButton("🔔 Удалить все повторяющиеся уведомления", callback_data="clear_recurring_notifications")])
+
+        # Add system clear button for level 3 admins
+        if admin_level >= 3:
+            keyboard.append([InlineKeyboardButton("💥 Очистить систему", callback_data="clear_system")])
 
 
         reply_markup = InlineKeyboardMarkup(keyboard)
