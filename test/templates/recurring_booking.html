@@ -1,0 +1,243 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ get_translation('recurring_booking', 'Recurring Booking') }} - {{ get_translation('app_title') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary">
+                    <i class="fas fa-repeat me-2"></i>
+                    {{ get_translation('recurring_booking', 'Recurring Booking') }}
+                </h2>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    {{ get_translation('back', 'Back') }}
+                </a>
+            </div>
+
+            <!-- Room Info Card -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-1">{{ get_room_name(room) }}</h5>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {{ get_room_location(room) }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="badge bg-info fs-6">
+                                <i class="fas fa-users me-1"></i>
+                                {{ room.capacity }} {{ get_translation('people', 'people') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recurring Booking Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        {{ get_translation('create_recurring_booking', 'Create Recurring Booking') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="recurringBookingForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="start_date" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ get_translation('start_date', 'Start Date') }}
+                                </label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="start_date" 
+                                       name="start_date" 
+                                       min="{{ today }}" 
+                                       required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="start_time" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ get_translation('start_time', 'Start Time') }}
+                                </label>
+                                <input type="time" 
+                                       class="form-control" 
+                                       id="start_time" 
+                                       name="start_time" 
+                                       min="09:00"
+                                       max="17:45"
+                                       required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="end_time" class="form-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ get_translation('end_time', 'End Time') }}
+                                </label>
+                                <input type="time" 
+                                       class="form-control" 
+                                       id="end_time" 
+                                       name="end_time" 
+                                       min="09:15"
+                                       max="18:00"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-week me-1"></i>
+                                {{ get_translation('repeat_on_days', 'Repeat on Days') }}
+                            </label>
+                            <div class="row">
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="monday" id="monday" name="days_of_week">
+                                        <label class="form-check-label" for="monday">
+                                            {{ get_translation('monday', 'Monday') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="tuesday" id="tuesday" name="days_of_week">
+                                        <label class="form-check-label" for="tuesday">
+                                            {{ get_translation('tuesday', 'Tuesday') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="wednesday" id="wednesday" name="days_of_week">
+                                        <label class="form-check-label" for="wednesday">
+                                            {{ get_translation('wednesday', 'Wednesday') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="thursday" id="thursday" name="days_of_week">
+                                        <label class="form-check-label" for="thursday">
+                                            {{ get_translation('thursday', 'Thursday') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="friday" id="friday" name="days_of_week">
+                                        <label class="form-check-label" for="friday">
+                                            {{ get_translation('friday', 'Friday') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="saturday" id="saturday" name="days_of_week">
+                                        <label class="form-check-label" for="saturday">
+                                            {{ get_translation('saturday', 'Saturday') }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="sunday" id="sunday" name="days_of_week">
+                                        <label class="form-check-label" for="sunday">
+                                            {{ get_translation('sunday', 'Sunday') }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="weeks_count" class="form-label">
+                                <i class="fas fa-hashtag me-1"></i>
+                                {{ get_translation('number_of_weeks', 'Number of Weeks') }}
+                            </label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="weeks_count" 
+                                   name="weeks_count" 
+                                   min="1" 
+                                   max="52" 
+                                   value="4" 
+                                   required>
+                            <small class="form-text text-muted">{{ get_translation('max_52_weeks', 'Maximum 52 weeks') }}</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="purpose" class="form-label">
+                                <i class="fas fa-clipboard me-1"></i>
+                                {{ get_translation('purpose', 'Purpose') }}
+                            </label>
+                            <textarea class="form-control" 
+                                      id="purpose" 
+                                      name="purpose" 
+                                      rows="3" 
+                                      placeholder="{{ get_translation('purpose_placeholder', 'Meeting purpose (optional)') }}"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                {{ get_translation('cancel', 'Cancel') }}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-repeat me-2"></i>
+                                {{ get_translation('create_recurring_booking', 'Create Recurring Booking') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startTimeInput = document.getElementById('start_time');
+    const endTimeInput = document.getElementById('end_time');
+    
+    // Auto-set end time when start time changes
+    startTimeInput.addEventListener('change', function() {
+        if (this.value && !endTimeInput.value) {
+            const startTime = new Date(`2000-01-01T${this.value}`);
+            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Add 1 hour
+            
+            const endTimeString = endTime.toTimeString().slice(0, 5);
+            if (endTimeString <= '18:00') {
+                endTimeInput.value = endTimeString;
+            }
+        }
+    });
+    
+    // Form validation
+    document.getElementById('recurringBookingForm').addEventListener('submit', function(e) {
+        const daysChecked = document.querySelectorAll('input[name="days_of_week"]:checked');
+        
+        if (daysChecked.length === 0) {
+            e.preventDefault();
+            alert('{{ get_translation("select_at_least_one_day", "Please select at least one day") }}');
+            return false;
+        }
+        
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
+        
+        if (startTime >= endTime) {
+            e.preventDefault();
+            alert('{{ get_translation("invalid_time_range", "End time must be after start time") }}');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
