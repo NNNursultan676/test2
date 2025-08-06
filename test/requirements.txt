@@ -5,3 +5,4 @@ psycopg2-binary
 email-validator
 gunicorn
 translations
+tojsonfilter
